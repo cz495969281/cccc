@@ -1,0 +1,173 @@
+连接查询
+
+1、什么是连接查询？
+	 - 查询的时候只从一张表检索数据，被称为单表查询
+
+	 -在实际的开发中，数据并不是存储在一张表中的，是同时存储在多张表中，在这些表和表之间存在关系，我们在检索的时候通常是需要将多张表联合起来取得有效数据，这种多表查询被称为连接查询或者叫做跨表查询
+
+2、 连接查询根据出现年代分类：
+	 - SQL92【1992】
+	 - SQL92【1999：更新的语法，主要掌握这种语法】
+
+3、 连接查询根据连接方式可以分为：
+	- 内连接
+			* 等值连接
+			* 非等值连接
+			* 自连接
+
+	- 外连接
+			* 左外连接（左连接）
+			* 右外连接（右连接）
+	- 全连接 【使用很少】
+
+
+4、 当多张表进行连接查询，若没有任何条件进行限制，会发生什么现象？
+
+案例：查询每一个员工所在的部门名称，要求最终显示员工名和对应的部门名
+
+mysql> select ename,depno from emp;  <emp员工表>
+
+mysql> select deptno,dname from dept;   <dept部门表>
+
+主要分析：多张表连接查询，若没有任何条件限制，会发生什么？
+
+select e.ename,d.dname from emp e, dept d;
+预测结果:
+ename            dname
+-------------------------
+SMITH            ACCOUNTING
+SMITH			 RESEARECH
+SMITH			 SALES
+SMITH			 OPERATIONS
+ALLEN			 ACCOUNTING			  
+ALLEN            RESEARECH
+ALLEN 			 SALES
+ALLEN			 OPERATIONS	
+………………
+
+结论：若两张表进行连接查询的时候没有任何条件限制，最终的查询结果总数是两张表记录条数乘积，
+这种现象被称为笛卡尔积现象。为了避免笛卡尔积现象的发生，必须在进行表连接的时候添加限制条件。
+
+
+5、 案例：查询每一个员工所在的部门名称，要求最终显示员工名和对应的部门名
+
+   注意：在连接查询的时候虽然使用了限制条件，但是匹配的次数没有减少，还是跟上述的案例的次数一样，
+   只不过这一次的结果都是有效记录
+
+   SQL92语法：内连接中的等值连接
+   select e.ename,d.dname from emp e,dept d where e.deptno = d.deptno
+
+
+   SQL99语法：内连接中的等值连接
+   SQL99语法的优点: 表连接独立出来了，结果更清晰。对表连接不满意的话，可以再追加where进行过滤
+   select e.ename,d.dname from emp e join dept d on e.deptno = d.deptno;   //on 后面跟的是表连接的条件
+   select e.ename,d.dname from emp e inner join dept d on e.deptno = d.deptno; //inner 可以省略
+
+6、 案例：找出每一个员工对应的工资等级，要求显示员工名，工资，工资等级
+
+	mysql>select ename,sal from emp;<emp员工表>
+
+	mysql>select * from salgrade;<salgrade工资等级表>
+
+
+	SQL92语法：内连接中的非等值连接
+	select e.ename,e.sal,s.grade from emp e,salgrade s where e.sal between s.losal and s.hisal;
+
+	SQL99语法:内连接中的非等值连接
+	select e.ename,e.sal,s.grade from emp e join salgrade s on e.sal between s.losal and s.hisal;
+
+
+7、 案例：找出每一个员工的上级领导，要求显示员工名以及对应的领导名
+
+	mysql> select empno,ename ,mgr from emp;  
+	<emp员工表 a>
+	
+	<emp领导表 b>
+
+
+	SQL92语法：内连接的自关联
+	select a.ename empname,b.ename leadername from emp a ,emp b where a.mgr=b.empno;
+
+	SQL99语法：内连接的自关联
+	select a.ename empname,b ename leadername from emp a join emp b on a.mrg=b.empno;
+	select a.ename empname,b ename leadername from emp a inner join emp b on a.mrg=b.empno; //inner 可以省略
+
+
+8、 案例：找出每一员工对应的部门名称，要求部分名全部显示
+
+	内连接：
+			A表和B表能够完全匹配的记录查询出来，被称为内连接
+
+	外链接：
+			A表和B表能够完全匹配到的记录查询出来之外，将其中一张表的记录无条件的完全查询出来，
+			对方表没有匹配的记录，会自动模拟出NULL与之匹配，这种查询被称为外链接
+
+			外链接的查询结果条数>=内连接的查询结果条数
+
+
+	SQL99语法：外连接中的右外连接【右连接】
+	select e.ename,d.dname from emp e right outer join dept d on e.deptno=d.deptno;
+	select e.ename,d.dname from emp e right join dept d on e.deptno=d.deptno; // outer可以省略
+
+
+	SQL99语法：外连接中的左外连接【左连接】
+	select e.ename,d,dname from dept d left outer join emp e on e.deptno=d.deptno;
+	select e.ename,d,dname from dept d left  join emp e on e.deptno=d.deptno;  // outer可以省略
+
+注意：
+	任何一个右外连接都可以写成左外连接，任何一个左外连接也同样可以写成右外连接
+
+
+为什么inner和outter可以省略，加上去有什么好处？
+		-可以省略，因为区分内连接和外连接依靠的不是这些关键字，而是看SQL语句中是否存在left/right
+		若存在，表示一定是一个外连接，其他都是内连接
+
+		-加上去的好处是增强可读性
+
+
+9、案例：找出每一个员工对应的领导名，要求显示所有的员工
+
+emp<员工表a>
+emp<领导表b>
+
+用到了外连接,要显示所有a表的信息
+	select a.ename empname,b.ename leadername from emp a left join emp b on a.mgr=b.empno;
+
+
+10、案例：找一个每一个员工对应的部门名称，以及该员工对应的工资等级。要求显示员工名，部门名、工资等级
+
+多张表进行表连接的语法格式：
+
+select 
+		xxx
+from
+		a
+join
+		b
+on
+		条件
+join
+		c
+on
+		条件
+
+
+原理：a表和b表进行表连接之后，a表再和b表进行表连接
+
+
+emp e
+dept d
+salgrade s 
+
+select 
+		e.ename,d.dname,s.grade
+from
+		emp e
+join
+		dept d
+on
+		e.deptno=d.deptno
+join
+		salgrade s 
+on
+		e.sal between s .losal and s.hisal;

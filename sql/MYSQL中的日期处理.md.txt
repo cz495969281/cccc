@@ -1,0 +1,66 @@
+1、关于Mysql中的日期处理
+
+	1.1 每一个数据库处理日期的时候，采用的机制都是不同的，日期处理都有自己的一套机制。
+	所以在实际的开发中，表中的字段定义为DATE类型，这种情况很少。因为一旦使用日期类型，那么
+	java程序将不能够通过。在实际开发中，一般会使用"日期字符串"来表示日期
+
+	1.2 日期是数据库本身的特色，也是数据库本身机制中的一个重要角色，所以还是需要掌握。
+
+2、MYSQL数据库管理系统中对日期的处理提供了两个重要的函数:
+	- str_to_date
+	- date_format
+
+
+3、str_to_date
+		
+		3.1 该函数的作用是:将"日期字符串" 转换成 "日期类型"数据 【varchar ---> date】
+		3.2 该函数的执行结果是DATE类型
+		3.3 该函数的使用格式:
+				str_to_date('日期字符串','日期格式')
+
+		3.4 关于mysql中的日期格式：
+					%Y    年
+					%m    月 
+					%d    日
+					%H    时
+					%i    分
+					%s    秒
+
+		3.5 案例：查询出1981-12-17入职的员工
+		       mysql>select ename,hiredate from emp where hiredate='1980-12-17'
+
+		       MYSQL默认的日期格式: %Y-%m-%d,以上的日期字符串'1980-12-17'正好和默认的日期格式一样，
+		       存在了自动类型转换，自动将日期字符串转换成了日期类型，所以以上查询
+		       可以查询出结果
+
+
+		       mysql>select ename,hiredate from emp where hiredate='12-17-1980';
+		       Empty set, 2 warnings (0.00 sec)
+
+		       '12-17-1980'日期字符串和mysql默认的日期格式不同
+		       hiredate是date类型，'12-17-1980'是一个字符串carchar类型，所以无法查询结果，并且有警告【错误】发生
+
+		       纠正以上SQL语句的错误:
+		       mysql>select ename,hiredate from emp where hiredate=str_to_date('12-17-1980','%m-%d-%Y');
+
+		3.6、 str_to_date函数通常使用在插入操作中。
+
+4、date_format
+		
+		4.1 该函数的作用是:将日期类型date转换成特定格式的日期字符串varchar【date ---> varchar】
+
+		4.2 该函数的运算结果是:varchar类型【具备特定格式】
+
+		4.3 该函数的语法格式:
+				date_format(日期类型数据,'日期格式')
+
+		4.4 案例:查询员工的入职日期，以'10-12-1980'的格式显示到窗口中
+		mysql>select ename,date_format(hiredate,'%m-%d-%Y') as hiredate from emp
+
+		4.5 date_format函数主要使用在查询操作中。客户需要日期以特定格式
+		展示的时候需要使用该函数
+
+
+
+
+

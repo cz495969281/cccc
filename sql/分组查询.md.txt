@@ -1,0 +1,117 @@
+分组查询
+
+1、分组查询涉及到的两个子句是：
+	  - group by
+	  - having
+
+2、group by 
+	
+	2.1 
+		order by 【表示通过哪个或者哪些字段进行排序】
+		group by 【表示通过哪个或者哪些字段进行分组】
+
+	2.2 案例:找出每个工作岗位的最高薪水【先按照工作岗位分组，使用max函数求每一组的最高薪水】
+
+		1.
+		select 
+				max(sal)
+		from 
+				emp
+		group by
+				job;
+		以上的SQL语句表示，先按照job分组，然后对每一组使用max(sal)求最高薪水
+
+
+		2.
+		select 
+				job,max(sal)
+		from 
+				emp
+		group by 
+				job;
+
+		工作岗位可以写到select后面吗？
+				可以，因为正好工作岗位job也是5个不同的值
+
+
+		3.
+		select 
+				ename,job,max(sal)
+		from 
+				emp
+		group by 
+				job;
+
+		ename可以编写到select后面吗？
+			-mysql中，可以，语法在这方面比较松散，不严格，但是查询结果没有意义
+
+			-oracle中，不可以，执行的时候报错
+
+
+		重点：select后面只能跟参加group by 的分组字段，以及分组函数，其他的字段都是不能跟的
+
+
+	2.3 案例:计算每个部分的平均薪水【按照部门编号分组，对每一组求平均值】
+
+		select deptno,avg(sal) as avgsal from emp group by deptno
+
+
+	2.4 案例:计算不同部门中的不同工作岗位的最高薪水
+	 select  deptno,job,max(sal) from emp group by deptno,job;
+
+	2.5 案例：找出每个工作岗位的最高薪水，除MANGER之外
+
+		select job,max(sal) from emp where job<>'MANGER' group by job;
+
+
+	2.6 案例：找出每个工作岗位的平均薪水，要求显示平均薪水大于1500。
+
+		select job,avg(sal)  from emp where avg(sal) > 1500 group by job;
+		ERROR 1111 (HY000):Invalid use of group function
+		where关键字后面不能直接使用分组函数
+		分组函数必须在分组完成后执行，而分组需要group by 而group b在where后面执行
+
+
+3、 having 
+	 	having和where功能都是为了完成数据的过滤
+	 	where和having后面都是添加条件
+	 	where在group by 之前完成过滤
+	 	having在group by 之后完成过滤
+
+	 	案例：找出每个工作岗位的平均薪水，要求显示平均薪水大于1500。
+
+	 	select 
+	 			job,avg(sal)
+	 	from 
+	 			emp 
+	 	having
+	 			avg(sal)>1500
+
+
+	 	原则：
+	 		尽量在where中过滤，无法过滤的数据，通常都是需要先分组之后再过滤的，，这个时候可以选择使用having。效率问题
+
+
+4. 一个完整的DQL的语句的总结：
+	select 
+			...
+	from  
+			...
+	where
+			...
+	group by 
+			...
+	having
+			...
+	order by
+			...
+
+
+	第一：以上的关键字顺序不能变，严格遵守
+	第二：执行顺序
+			1.from      从某张表中检索数据
+			2.where     经过某条件进行过滤
+			3.group by  然后分组
+			4.having    分组之后不满意再过滤
+			5.select    查询出来
+			6.order by  排序输出
